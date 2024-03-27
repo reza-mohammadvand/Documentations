@@ -1,0 +1,128 @@
+1- class A --> 0-127.x.x.x  -->  N.H.H.H  (network ID , Host ID) --> 0.x.x.x and 127.x.x.x are Reserved  --> 127.0.0.1 = IP loopback
+2- class B --> 128-191.x.x.x  -->  N.N.H.H 
+3- class C --> 192-223.x.x.x  -->  N.N.N.H or /24
+4- class D --> 224-239.x.x.x  -->  N/A   --> for Multicast
+5- class E --> 240-255.x.x.x  -->  N/A   --> for Research
+6- class A, B, C for Unicast
+7- unique address for each class --> for example class a --> 2 ** H_Count*8(3+8=24) - 2 (first and last adress are reserved for network and broadcast address)
+8- 150.1.1.1 --> class B | network address = 150.1.0.0 (H=0) | direct broadcast (broadcast address) = 150.1.255.255 (H=255) | range = 150.1.0.1 to 150.1.255.254
+8- for check two IP in one network --> theire subnetmasks must be equal
+9- subnetmask --> 255.255.255.128 = 11111111.11111111.11111111.10000000 = nnnnnnnn.nnnnnnnn.nnnnnnnn.nhhhhhhh
+10- for connect two device together --> PC, Router, Wireless AccessPoint(Ethernet) are same and Hub, Switch are same
+11- for connect two device in same class --> use cross over cable and for different class use stright cable
+12- header datalink --> {Preamble(7 Bytes ) - SFD(1 Byte)} (for check start and end of a packet ) - Source MAC address (8 Bytes) - Destination MAC address (8 Bytes) - Type (2 Bytes) - FCS (4 Bytes for validation) 
+13- go from previlage mode to enable mode --> enable and with disable come back to previlage mode
+14- go from enable mode to EXEX Command mode --> configure terminal and with exit come back to previlage mode or from n to 2 --> end or crtl+z
+15- for see all command --> type ? or for example en? --> show us all commands started wieh en 
+16- show all configs that exist --> switch# show running-config
+17- add user and password --> switch(config)# username name password ypur password --> login local
+18- add user and password in secret --> switch(config)# username name secret ypur password --> login local
+19- delete a user -->  switch(config)# no username name
+20- add password for enable mode --> enable password(secret) your_password
+21- default logout timer -->  switch(consol-line)# wxwc-timeout min secret
+22- add password to consol line -->  switch(config)# line consol 0 --. password your_password --> login
+23- enter to a interface -->  switch(config)# interface type mod/num --> 
+24- information of all interfaces --.  switch# show interface status
+25- set type of duplex -->  switch(config-if)# duplex type[half, full, auto]
+26- shutdown a interface -->  switch(config-if)# shutdown ( no shutdown for turn on)
+27- set type of speed -->  switch(config-if)# speed type[10, 100, ..., auto]
+28- show information about a interface --> switch# show interface type mod/num
+29- add default-gateway to switch --> switch(config)# ip default-gateway IP
+30- initial config for remote access --> switch(config)# interface vlan 1 --> switch(config-if)# ip address IP subnet
+31- add config on several interface --> switch(config)# interface range fa 0/1 , fa0/3 , fa0/11-18
+32- show mac address table --> switch# show mac-address-table
+33- age time of mac address table --> switch# show mac-address-table aging-time --> for change it --> switch(config)# mac-address-table sec
+34- show spanning tree information --> switch# show spanning tree (vlan number)
+
+
+
+
+Subneting
+==============================================================================================================================================
+1- we need 14 networks --> 7 network with 30 IP and 7 with 2 IP --> subnetmask = 192.168.1.0/24
+2- first we create network for largest --> H that we need (IPs) = 2 ** h -2 >= 30 --> h = 5 --> S that we need (Networks) = 2 ** s >= 7 --> s = 3 --> h + s <= 8 (count of h in subnetmask)
+3- 7 networks with 30 Ip --> 192.168.1.sss/hhhhh --> we can create 8 unique network with sss binary -->  192.168.1.000-001-002- ...
+4- IPs in network one is --> 192.168.1.000(00001)/27 to 192.168.1.000(11110)/27 ...
+5- now we have one range ip with 192.168.1.111/27 --> we do same steps for 7 networks with 2 IPs --> 2 ** h >= 2 --> h = 2 and 2 ** s >= 7 --> s = 3 and h + s = 5 <= 5 (count of h in subnetmask (32-27))
+6- we have 8 networks that each network has 2 IP --> 192.168.1.111sss.hhhhh
+7- IPs in network one is --> 192.168.1.111-000(01)/30 to 192.168.1.111-000(10)/30 ...
+
+
+
+
+
+remote access with telnet and ssh
+==============================================================================================================================================
+1- add IP --> 30
+2- add password --> 17 or 18
+3- switch(config)# line vty 0 ?
+4- switch(config-line)# password your_password
+5- switch(config-line)# login
+6- set password for enable mode --> 20
+7- we can set username and password and then do 3 and then --> login local
+8- telnet IP
+9- for ssh --> add IP = 30 --> add password = 18 --> set password for enable mode
+10- change hostname and domain ( switch(config)# ip domain-name name )
+11- switch(config)# crypto keu generate rsa 
+12- switch(config)# ip ssh version 2
+13- ssh -l username IP
+14- just ssh can login no telnet --> line vty 0 ? --> transport input ssh {telnet, all, none}
+
+
+
+
+
+vlan
+==============================================================================================================================================
+1- create vlan --> vlan number (1 - 4094)
+2- add name to vlan --> switch(config-vlan)# name your_name
+3- add interface to vlan --> switch(config)# interface range fastEthernet 0/1 - 3 --> switch(config-if-range)# switchport access vlan number
+4- show vlan information --> switch# show vlan (ID) (brief)
+5- show mac address table of a vlan --> switch# show mac-address-table vlan number
+6- delete a vlan --> no vlan number
+
+
+
+tagging and trunk (a interface that do tagging is trunk) (add tags to packet when we want send it to another vlan)
+7- show trunk ports --> switch# show interfaces trunk
+8- add a interface to trunk --> switch(config)# interface range fastEthernet 0/1 - 3 --> switch(config-if-range)# switchport mode trunk --> in another switch do same
+9- if switchs support two protocol --> switch(config)# interface range fastEthernet 0/1 - 3 --> switch(config-if-range)# switchport trunk encapsulation dot1q(or another protocol) --> switch(config-if-range)# switchport mode trunk --> in another switch do same
+10- native vlan (doesn't need tag) --> we must set same vlans as native in two switchs --> go to trunk interface --> --> switch(config-if)# switchport mode trunk native vlan number
+11- trunk ports mode --> dunamic (desireble --> send request for create trunk and if receive a reply create it | auto --> wait for request to be a trunk port ) --> go to trunk interface --> switch(config-if)# switchport mode dynamic type
+12- we also can set static type for trunk port 
+13- trunk mode --> administrative-mode --> what we set for it | operation-mode --> what connection it has
+14- inter vlan routing (add connection between vlans) --> you can connect port of each vlan together | connect with router | connect with layer 3 switch
+
+
+
+
+
+routers
+==============================================================================================================================================
+1- show interface information --> router# show ip interface brief
+2- go to a port --> interface fastEthernet 0/1
+3- add item to ip table --> router(config)# ip route network/mask(output) outpot-port
+4- add item to ip table --> router(config)# ip route network/mask(output) next-hop
+5- add item to ip table --> router(config)# ip route network/mask(output) outpot-port next-hop --> ip route 192.168.56.1 255.255.255.0 se0/0/0 192.168.56.2
+
+
+
+
+
+OSPF
+6- router(config)# router ospf processID --> router(config-router)# router id A.B.C.D --> router(config-router)# network A.B.C.D WC-mask area number
+7- show ospf port information --> router# show ip ospf interface
+8- show neighbors information --> router# show ip ospf neighbor
+9- add a interface to a area --> go to the interface --> ip ospf 1 area number
+
+
+
+
+
+access control
+==============================================================================================================================================
+1- access-list number {permit or deny} source-IP wc-mask(optional) destination-IP wc-mask(optional)
+2- show access list information --> router# show ip access-list number
+3- set access list for a interface --> go to interface --> {no} ip access-group number {in or out}
+4- access-list number permit udp any host 192.168.56.20 eq 53
+5- access-list standard name --> {permit or deny} source-IP wc-mask(optional)
