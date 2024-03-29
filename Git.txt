@@ -1,0 +1,43 @@
+01- create git --> git init
+02- add to stage --> git add name or .
+03- commit --> git commit -m "comment"
+04- add to stage and commit --> git commit -a -m "comment"
+05- show details --> git status
+06- show changes --> git diff
+07- show commits --> git log
+08- show commits in lines --> git log [number] --oneline
+09- show details of changes --> git log -p | more details --> git log --stat
+10- remove changes on stage that add to stage but doesn't commit --> git restore --staged name or .
+11- return to last commit --> git checkout -- name or .
+12- return to special commit --> git reset ID --> git checkout -- . | git reset --hard ID
+13- create a branch --> git branch name
+14- show branchs --> git branch -a
+15- switch to special branch --> git checkout name
+16- delete a branche --> git branch -d name
+17- create a branch and switch to it --> git checkout -b name
+18- merge two branch --> switch to main branch --> git merge name(that you want add to main branch)
+19- show graph --> git log --graph
+20- add ignore file --> create file .gitignore --> write the file or directory to that file like this :
+directory/
+*.txt
+--> and then add and commit .gitignore
+21- change name --> git config --global user.name Name
+22- change email --> git config --global user.email Email
+23- push your git files to github --> first remote to github --> git remote add origin https://github.com/reza-mohammadvand/test.git --> then push --> git push -u origin main(branch on github))
+24- get last version of file from github --> after remote connection -->  git pull origin main
+25- when we have changes and we want save that without commit and change mu branch and after return to main branch we want restore my changes that doesn't commited  do this :
+- save changes --> git stash 
+- show list of stash and find ID --> git stash list
+- show changes --> git show ID
+- when return to main branch and want restore changes -->  git stash apply ID
+26- create a tag --> git tag -a name -m "message"
+27- show tags list --> git tag
+28- show changes of tag --> git show tag_name
+29- switch to tag --> git checkout tag_name
+30- push tag  --> git push origin tag_name
+31- add key for digital signature --> after create a key --> git config --global user.signingkey keyID
+- generate a key --> gpg --gen-key -->  gpg --list-keys --> get ID --> gpg --list-secret-keys --keyid-format LONG --> rsa3072/ID
+32- add digital signature to tag --> git tag -s name -m "message"
+33- check validate of signature --> git tag -v
+34- add digital signature to commit --> git commit -s -m "message"
+35- for find person who add changes --> git blame file_name [-L8 or other lines you want to see changers]
