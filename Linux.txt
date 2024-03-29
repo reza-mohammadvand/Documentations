@@ -1,0 +1,188 @@
+most important commands
+==============================================================================================================================================
+1- useradd -u name1 name2  --> create new user(name2) and give to it name1's directory
+2- pwconv & pwunconv -- grpconv & grpunconv --> add or remove shadowing from users and groups
+3- passwd -L/U name --> active or deactive name
+4- useradd -d /my_home_directory -m -g main_grop -G additional_group -s bash_address -c comment -p password name --> add new user
+5- cut -d(-c 10 --> 10th carater) "column" -f number_of_column name --> cut part of file
+6- join A B --> concat B to A
+7- paste A B --> concat A to B line by line
+8- dd if=/dev/zero of=/file.txt bs=(valume M or ...) count=(count) --> build a file with count block that each has valume of valume
+9- nslookup site --> give DNS and IPv4 address
+10- host site --> give DNS and IPv4 address and IPv6 address
+11- dig @DNS_server var site --> give DNS and IPv4 address and IPv6 address and more details  --> var = A -- FQDN -> IPv4 / AAAA FQDN -> IPv6 / MX -> main server / PTR -- IP -> FQDN 
+12- systemctl status/start/stop firewalld --> check firewall or start or stop it
+13- firewall-cmd --list-ports/services/all --> show port and service and all
+14- firewall-cmd --remove/add-ports/services=sshd --> remove or add port and service (for example sshd or 22/tcp)
+15- firewall-cmd --reload --> delete config that not permanent
+16- firewall-cmd --permanent --> permanent the config
+17- firewall-cmd --permanent --add-port=22/tcp --> add port at permanent (for example 22/tco )
+18- ufw status/enable--> check firewall or start it
+19- ufw allow 22/tcp --> add port (for example 22/tco )
+20- ufw delete number_of_line --> delete one line according to ufw status
+21- ufd reset --> delete all list and disable the firewall
+22- see ports --> netstat/ss -ntulp
+23- change port of ssh --> vi /etc/ssh/sshd_config
+24- ssh --> ssh root@IP (-p port_number)
+25- change IP in Cen_OS on command --> vi /etc/sysconfig/network-scripts/ifcfg-enp0s3(interface)
+26- search namr packet --> apt-cache search server | grep name
+27- check exist package --> dpkg -l | grep name
+28- show upgradable list --> apt list upgradable 
+29- remove a app with config --> apt remove --purge name
+30- change defaut gateway --> vi /etc/netplan/00-installer-config.yaml --> insert IP --> netplan apply
+31- install vm-tools --> sudo apt-get install open-vm-tools_* -y
+
+
+
+
+
+Install v2ray on ubuntu 
+==============================================================================================================================================
+1- download nekoray app --> https://v2.hysteria.network/docs/getting-started/Installation/
+2- type this --> sudo apt install libxcb-xinerama0 libqt5core5a libqt5gui5 libqt5network5 libqt5widgets5 libqt5svg5 libqt5x11extras5
+3- dpkg -i nekoray-3.26-2023-12-09-debian-x64.deb
+
+
+
+
+
+ssh with key
+==============================================================================================================================================
+1- on Cent_OS --> ssh-keygen --> give it a password
+2- in /.ssh 2 file created --> move a public key to ubuntu
+2- ssh-copy-id (-p port_number) -i ./name_key.pub root@IP 
+4- in ubuntu and in /.ssh you see the key and now you can ssh to Cent_OS without password   
+
+
+
+
+
+quota --> limited user for use the partitions
+==============================================================================================================================================
+1- apt-get install quota
+2- in /etc/fstab and in line of partition --> after defaults --> defaults,usrquota,grpquota
+3- umount and mount the partition 
+4- quotaoff -a
+5- quotacheck -cug /dev/your_partition
+6- edquota -u username
+7- insert value --> you can add rules on blocks or inodes --> soft=if you achieve to this you get alarm to remove the extra data and if you don't this for 7days your data has deleted hard=you don't save data more than this value  
+
+
+
+
+
+DNS-Server
+==============================================================================================================================================
+1- for Ubuntu --> install bind9 bind9utils  and for CentOS --> yum install bind bind_utils
+2- Active Cach Server --> /etc/bind/named.conf.options --> at the end of {} --> type : recursion yes; 
+3- check bind9 --> systemctl status bind9 and restart bind9 --> systemctl restart bind9
+
+
+
+
+
+# Create Web Server 
+4- vi /etc/bind/named.conf.local --> at the end of that, type this :
+zone "name" {
+type master;
+file "/etc/bind/name_of_database";
+};
+5- write this in database :
+$TTL	number  # time for cash record
+@	IN	SOA	name_of_zone.	root.name_of_zone. (	#root refer to responsible person
+	number	#serial -- after each change --> increase this
+	number	#what time per second for request to server
+	number	#time for if server was busy repeate send request
+	number	#time for expiertion
+	number	#time for save in cashe
+)
+@	IN	NS	ns1.name_of_zone.	#for webserver
+ns1.name_of_zone.	IN	A	Server_IP	#server_IP
+site	IN	A	IP #add more record
+6- check your code --> rndc reload
+7- systemctl restart bind9 and systemctl status bind9
+
+
+
+
+
+# Create a Reverse Zone 
+8- vi /etc/bind/named.conf.local --> at the end of that, type this :
+zone "56.168.192.in-addr.arpa" {	#IP is reverse --> 192.168.56.0 --> 56.168.192
+type master;
+file "/etc/bind/name_of_database";
+};
+9- write this in database :
+$TTL	number  # time for cash record
+@	IN	SOA	name_of_zone.	root.name_of_zone. (	#root refer to responsible person
+	number	#serial -- after each change --> increase this
+	number	#what time per second for request to server
+	number	#time for if server was busy repeate send request
+	number	#time for expiertion
+	number	#time for save in cashe
+)
+@	IN	NS	ns1.name_of_zone.	#for webserver
+End_of_IP	IN	PTR	site #add more record --> End_of_IP --> 192.168.56.10 = 10
+10- check your code --> rndc reload
+11- systemctl restart bind9 and systemctl status bind9
+12- test Reverse Zone with --> dig -X IP
+
+
+
+
+
+# for config a slave to get DNS from master
+16- first check time be update in slave and master
+17- in ubuntu cat /etc/timezone --> if was Asia/Tehran is goot else:
+18- go to /usr/share/zoneinfo and find iran --> cp ./iran /etc/localtime
+19- for cent_os check graphically
+20- go to database of DNS master ( create in line 5 ) --> increase serial --> then add this under the @	IN	NS	ns1.name_of_zone.	#for webserver :
+@	IN	NS	ns2.name_of_zone.	#for webserver
+21- add this record --> ns2.name_of_zone.	IN	A	Server_IP	#server_IP of slave
+22- config for don't send items for any slaves --> vi named.conf.local --> at the end of zone add this line --> allow-transfer {any; or slave_IP;};
+23- check your code --> rndc reload
+24- systemctl restart bind9 and systemctl status bind9
+25- in Cent_OS vi /etc/named.conf --> change this line :
+line 13 : listen-on port 53 {any;};
+line 21 : allow-query {any;};
+26- after last zone and before includes --> type this :
+zone "name" {
+type slave;
+master {master_IP;};
+file "name_of_database";
+};
+27- systemctl restart named and systemctl status named
+
+
+
+
+
+# safe the connection between master and slave
+28- install openssh-server on ubuntu and Cent_os
+29- check /etc/ssh/sshd_config --> line 28 be Permit Root login : yes in ubuntu and Cent_OS
+30- if you have change --> systemctl restart sshd
+31- test ssh --> ssh root@IP
+32- check port and firewall for both system
+33- on master --> dnssec-keygen -a HMAC-MD5 -b 128 -n HOST(key for this machine) -r /dev/urandom(random generate) name
+34- create 2 key --> one public and one private
+35- cat name.key | grep key > ./named.conf.test
+36- open the above file and write this:
+key "your_name" {
+algorithm HMAC-MD5;
+secret "the key that we drop to this file in line 36";
+};
+37- at the last include in /etc/bind/named.conf --> include "/etc/bind/named.conf.test" # introduce your key
+38- in /etc/bind/named.conf.local and at the end of your zone --> allow-transfer{key your_name;};
+39- scp /etc/bind/named.conf.test root@slave_IP:/root/
+40- in slave --> cat /root/named.conf.test >> /etc/named.conf
+41- vi /etc/named.conf --> cut the key at the end of file and move it above of options
+42- under the key and above of options type :
+server master_IP {
+keys {key your_name;};
+};
+43- systemctl restart named and systemctl status named
+44- systemctl restart bind9 and systemctl status bind9
+
+
+
+
