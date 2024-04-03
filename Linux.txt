@@ -275,3 +275,138 @@ server 1.ubuntu.pool.ntp.org iburst
 
 
 
+
+Nginx
+==============================================================================================================================================
+1- install Nginx --> apt-get install nginx
+2- on /var/www create 2 directory for 2 site and create 2 html file for each other
+3- /etc/nginx --> sites-available = config -- sites-enable = symbolic link for active -- ports.conf = config ports
+4- add a new IP on /etc/network/interfaces --> type this :
+auto enp0s3:0
+iface enp0s3:0 inet static
+	address IP
+	network 255.255.255.0
+5- go to sites-available and create web.conf and type this :
+server{
+listen IP_device:80;
+location / (  # for example google/home --> home is location
+root /var/www/your_directory_of_site;
+)
+}
+6- copy above lines for second site
+7- go to sites-enable --> ln -s ../sites-available/web.conf .
+8- check your command with nginx -t
+9- systemctl restart nginx | systemctl status nginx
+10- now you can check website
+
+
+
+
+
+# same IP and different port for two site
+11- vi web.conf --> change port and add same IP
+12- systemctl restart nginx | systemctl status nginx
+
+
+
+
+
+# same port and ip and different domain for two site
+13- vi web.conf --> add two lines for to part under the listen :
+server_name www.name.com;
+14- now accourding to how create a DNS server --> create a dns server for each site or add its info in /etc/hosts
+15- systemctl restart nginx | systemctl status nginx
+
+
+
+
+
+# another location (for example /image)
+16- create a directory in web site directory in /var/www with name image and create a html file in that
+17- vi web.conf --> goo to part of your site and add a new location :
+location /image (
+root /var/www/your_site;  # dont add /image
+)
+18- systemctl restart nginx | systemctl status nginx
+
+
+
+
+
+# Reverse Proxy --> loadbalancing, web acceleration ...
+# loadbalancing with weight by different port
+19- clear web.conf and type this for eache site but by different port 8080 and 8090 :
+server{
+listen 8080;
+location / (  # for example google/home --> home is location
+root /var/www/your_directory_of_site;
+)
+}
+20- nginx -t | systemctl restart nginx | systemctl status nginx and get test for two site
+21- vi web.conf and type this :
+upstream loadbalancer_name {
+servre 127.0.0.1:8080 weight=1; #local host IP and weight
+servre 127.0.0.1:8090 weight=2; #local host IP and weight
+}
+server {
+listen 80;
+location / ( 
+proxy_pass http://loadbalancer_name;
+)
+}
+22- nginx -t | systemctl restart nginx | systemctl status nginx and get test for two site
+
+
+
+
+
+# loadbalancing with IPHash by different port (calculate the hash of IP and in next request send it to recent server 
+23- vi web.conf and type this :
+upstream loadbalancer_name {
+ip_hash;
+servre 127.0.0.1:8080 weight=1; #local host IP and weight
+servre 127.0.0.1:8090 weight=2; #local host IP and weight
+}
+server {
+listen 80;
+location / ( 
+proxy_pass http://loadbalancer_name;
+)
+}
+
+
+
+
+
+# Authentication in Nginx
+24- in /var/www/your_directory create a directory for save the username password for example Authentication and then create a html file
+25- htpasswd -c /etc/nginx/password username -- and then enter the password
+26- clear web.conf and type this :
+server {
+listen 81;
+location / ( 
+root /var/www/your_directory_of_site;
+)
+location /authentication (
+root /var/www/your_directory_of_site;
+allow valid_IP; # IP that it valid to access
+deny deny_IP; #IP that it deny to access for example all
+auth_basic "enter your text";
+auth_basic_user_file /etc/nginx/password;
+)
+}
+27- nginx -t | systemctl restart nginx | systemctl status nginx and get test on browser http://IP:81/authentication
+
+
+
+
+
+# Download and speed 
+28- create a file --> dd if=/dev/zero of=./text.txt bs=500M count=1
+29- you can check by addres_web_site/test.txt on browser
+30- config speed download --> go to web.conf --> under the root/var/.../site; type this:
+limit_rate 1m; #1 mb/s
+
+
+
+
