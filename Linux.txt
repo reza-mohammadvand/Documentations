@@ -186,3 +186,92 @@ keys {key your_name;};
 
 
 
+Apache2 == httpd 
+==============================================================================================================================================
+1- for ubuntu --> apt-get install apache2 apache2_utils and for Cent_OS --> yum install httpd mod_ssl
+2- /etc/apache2 --> sites-available = config -- sites-enable = symbolic link for active -- ports.conf = config ports
+3- /etc/www --> location of html files
+4- create a directory in above location and create a test html file at in
+5- go to sites-available and get a copy from 000-default by another name
+6- vi the copy file --> for two  create two site you can copy all text and paste it at the end ( you should create a directory and html file for second site in line 4 and create a new ip interface in /etc/network/interfaces --> give a copy from interface and change the Ip and change line of auto enp0s?:0  
+7- type ip address in line one -- on line --> DocumentRoot /var/www/your_directory
+8- go to sites-enable and create a symbolic link (a2ensite name(line 5)) or create with command
+9- systemctl restart apache2 -- systemctl reload apache2
+
+
+
+
+# same IP and different port for two site
+11- go to /etc/apache2 and vi ports.conf and add this for listen:
+listen ip : 8080
+listen ip : 8090
+12- go to sites-enable and vi name(line 5) and for each site type the ip with port like : 192.168.56.10:8080
+13- systemctl restart apache2 -- systemctl reload apache2
+
+
+
+
+# same port and ip and different domain for two site
+14- go to sites-enable and vi name(line 5) and for each site type the same ip with same port for two sites 
+15- in line 9 --> server name --> uncomment ant type my domain name --> do this f16- now accourding to how create a DNS server --> create a dns server for each site or add its info in /etc/hosts
+or another site
+17- systemctl restart bind9 and systemctl status bind9
+18- go to /etc/apache2 and vi ports.conf and type listen only on port 80
+19- systemctl restart apache2 -- systemctl reload apache2
+
+
+
+
+
+# get username and password for .../secret
+20- on /var/www/your_directory create a directory with a name(for example secret) and create a html file in it
+21- go to sites-enable and vi name(line 5) and in line 13 and on the bottom of DocumentRoot type this :
+<Directory "/var/www/your_directory/secret">
+	AuthType	Basic
+	AuthName	"a text for display"
+	AuthUserFile	/etc/apache2/namepass #for cache your password
+	Require	valid-user
+</Directory>
+22- create password --> htpasswd -c /etc/apache2/namepass username/password
+23- systemctl restart apache2 -- systemctl reload apache2
+
+
+
+
+
+# Redirect
+24- on /var/www/your_directory create a directory with a name(for example policy) and create a html file in it
+25- go to sites-enable and vi name(line 5) and in line 13 and on the bottom of DocumentRoot type this :
+Redirect /secret /policy #if you search secret redirect you to policy
+26- systemctl restart apache2 -- systemctl reload apache2
+
+
+
+
+
+#use certificate for site
+27- on Cent_OS --> create a key --> opensslreq -x509 -nodes -days 10(days that valid this key) -newkey RSA-2048 -keyout(private key) /etc/httpd/name.key -out(public key) /etc/httpd/name.crt
+28- answer to the questions
+29- vi /etc/httpd/conf/httpd.conf -->  in line 42 you can see port listening and on line 119 see source site
+30- go to /var/www/html and create a html file
+31- vi /etc/httpd/conf.d/ssl.conf --> on line 100 you type public key address and on line 107 type private key address
+32- systemctl restart httpd
+33- now you can search in your browser https://localhost and see you need certificate
+
+
+
+
+
+NTP Server
+==============================================================================================================================================
+1- install NTP --> apt-get install ntp 
+2- add your time server in /etc/ntp.conf like this :
+server 0.ubuntu.pool.ntp.org iburst
+server 1.ubuntu.pool.ntp.org iburst
+3- add port on firewall --> ufw allow 123/udp 
+4- systemctl restart ntp | systemctl status ntp 
+5- check config --> ntpq -p 
+
+
+
+
