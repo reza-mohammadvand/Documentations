@@ -410,3 +410,86 @@ limit_rate 1m; #1 mb/s
 
 
 
+
+
+Routing and firewall
+==============================================================================================================================================
+1- for enable routing --> echo 1 > /proc/sys/net/ipv4/ip_forward
+2- for permanent enabling --> vi /etc/rc.local --> type echo 1 > /proc/sys/net/ipv4/ip_forward
+3- show routing table --> route -n 
+4- apt-get install iptables_persistent --> for perminant of rules
+
+
+
+
+#Firewall
+4- for accept or block or ... packets enter to system use filter and for Redirect or port mapping or ... use NAT
+5- type of chain --> Input -- Output -- Forward -- Post Routing -- Pre Routing
+6- count of chains of table --> iptable -t filter(or nat or ...) -nL
+7- show routing table --> iptables --list-number -nL
+8- Roles --> -p = Protocol | -s = source address | -d = destination address | -i inbound interface | -o = outbound interface | -j = jump(reaction) | -A = append | -I = Insert (-A and type of chain must type together)
+9- iptables -t filter -A INPUT -s IP_Address -p icmp -j REJECT --> (Reject) IP_Address can't ping me
+10- iptables -t filter -I INPUT 1 -s IP_Address -p icmp -j DROP --> (DROP) IP_Address can't ping me (because at above line we reject that, we use insert to append this rule on 1st line)
+11- iptables -t filter -D INPUT 2 --> delete line 2 from chain INPUT in filter table
+12- iptables -t filter -F --> delete all line from filter table
+13- iptables -t filter -A INPUT -s IP_Address -p tcp --destination-port 22 -j REJECT --> IP_Address can't ssh me but can ping me
+14- iptables -t filter -A OUTPUT -d IP_Address -j DROP --> I can't send any packet to Address 
+15- save rules for peminant --> iptables-save > /etc/iptables/rules.v4
+
+
+
+
+#NAT Server (another machine does't have my ssh port buc it can ssh (Redirect port))
+15- vi /etc/ssh/sshd_config and change port (for example 2370)
+16- iptables -t nat -A PREROUTING -i enp0s3 -p tcp --dport 22 -j REDIRECT --to-port 2370 # every packet i get on port 22, redirect it on port 2370
+
+
+
+
+
+#Connect another device to internet by my device
+17- set defual-gateway for device and check the connections
+18- clear filter and nat tables
+19- iptables -t nat --append POSTROUTING --out-interface enp0s8 -j MASQUERADE # ip public that you got it, stick a tag on it and send to internet by enp0s8
+20- iptables -t filter -A FORWARD -i enp0s3 -j ACCEPT # if receive a packet from enp0s3, accept it
+
+
+
+
+
+#enter from public to private
+21- check connections
+22- on device1 vi /etc/ssh/sshd_config and change ssh port (for example 2580)
+23- on device2 vi /etc/ssh/sshd_config and change ssh port (for example 2590)
+24- check both devices listen on its port
+25- on ubuntu --> iptables -t nat -A PRERROUTING -i enp0s8 -p tcp --destination-port 2222 -j DNAT --to-destination IP_device1:2580 # if receive packet on port 2222, send it to device1 on port 2580
+26- on ubuntu --> iptables -t nat -A PRERROUTING -i enp0s8 -p tcp --destination-port 3333 -j DNAT --to-destination IP_device1:2590
+27- iptables -t filter -A FORWARD -i enp0s8 -p tcp --destination-port 2580 -j ACCEPT
+28- iptables -t filter -A FORWARD -i enp0s8 -p tcp --destination-port 2590 -j ACCEPT
+29- now you can ssh to device1 and device2 by device3 that connected to ubuntu but in another network (ssh root@IP_address -p 2222/3333)
+
+
+
+
+
+LVM --> Logical Volume Manager
+==============================================================================================================================================
+1- give informations --> pvs | pvdisplay -- lvs | lvdisplay -- vgs | vgdisplay
+1- add new hard --> create a new partition --> change type to linux LVM
+2- mkfs new partitions
+3- add tag pv on partitions --> pv create address_of_your_partitions
+4- create vitual group --> vgcreate vg_name address_of_your_partitions
+5- create logical volume --> lvcreate --name lv_name --size 3G(for example) vg_name
+6- mkfs and mount new partition (lvname)
+7- extend a logical volume --> lvextend -L +1G(for example) lv_name(with address)
+8- reduce a logical volume --> lvreduce -L -1G(for example) lv_name(with address)
+9- extend a virtual group --> vgextend vg_name  /dev/portition you want add
+10- for reverse --> firest umount --> for delete logical volume --> lvremove lv_name(with address)
+11- for decrease virtual group and free pv --> vgreduce vg_name lv_name(with address)
+12- if you want delete last pv, you should delete virtual group --> ngremove vg_name
+13- for remove lvm tag from pv --> pvremove /dev/partition then change its type
+
+
+
+
+
