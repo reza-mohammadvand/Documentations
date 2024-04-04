@@ -493,3 +493,50 @@ LVM --> Logical Volume Manager
 
 
 
+
+RAID
+==============================================================================================================================================
+1- show RAID --> cat /proc/mdstat
+2- change type portition to RAID --> fdisk --> change type to RAID (fd) 
+3- show RAID detail --> lsblk -- more detail --> mdadm --detail /dev/name
+4- for perminant config --> mdadm --detail --scan > /etc/mdadm.conf
+
+
+
+
+
+#RAID 1
+5- after change type of partitions --> mdadm --create --berbose /dev/name --level=1 --raid-devices=number /dev/sdb?(partition you want for RAID)
+6- now you shoud change the type of name with fdisk and mkfs it
+7- for perminant config --> mdadm --detail --scan > /etc/mdadm.conf
+8- now you shoud mount new partitin (/dev/name) and save it in /etc/fstab (for get the UUID --> tune2fs -l /dev/name | grep -i UUID)
+9- if one disk was crash and you want alter a new disk --> mdadm --manage /dev/name --add /dev/new_partition 
+
+
+
+
+
+#RAID 5
+10- after change type of partitions --> mdadm --create --berbose /dev/name --level=5 --raid-devices=number /dev/sdb?(partition you want for RAID)
+11- run command 6 to 9
+
+
+
+
+
+NFS | Network File Sharing == create a logical disk on device1(client) one but save files on physical disk on device2(server)
+==============================================================================================================================================
+1- install pakage on server --> apt-get-install nfs-kernel-server
+2- now cerate a directory and chmode that to 777 and introduce that for physical disk
+3-show exports address --> showmount -e localhost -- active export --> exportfs -r 
+4- vi /etc/export --> at the end of file type --> /directory_address	*(rw)
+5- active export --> exportfs -r 
+6- systemctl restart nfs-kernel-server -- systemctl status nfs-kernel-server
+7- on client --> check connection --> show exports of server --> showmount -e server_IP 
+8- now cerate a directory and introduce that for logical disk
+9- vi /etc/fstab --> server_IP:/address_directory_server	/address_directory_client	nfs	defaults	0	0
+10- mount /address_directory_client --> init 6
+
+
+
+
