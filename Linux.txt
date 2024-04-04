@@ -540,3 +540,60 @@ NFS | Network File Sharing == create a logical disk on device1(client) one but s
 
 
 
+
+SAMBA = connection and share file and printer and ... between linux and windows
+==============================================================================================================================================
+1- on ubuntu --> apt-get-install samba(for server) smbclient(for client)
+2- check connection between linux and windows
+3- on the window we should share a folder
+4- on ubuntu --> vi /etc/samba/smb.conf --> line 29 = name domain_work_group --> line 40 = IP_Windows
+5- windows = server and ubuntu = client --> for show share file --> smbclient -L Windows_IP -U username password
+6- if you have error (protocol nagotiation ...) --> vi /etc/samba/smb.conf --> in line 44 or another line type this lines :
+client min protocol = SMB2
+client max protocol = SMB3
+7- then systemctl restart smbd
+8- enter to share folder --> smbclient //Windows_IP/share_directory -U username password
+
+
+
+
+
+# windows = client and ubuntu = server
+9- first create a directory on ubuntu
+10- set password for user --> smbpasswd -a username
+11- vi /etc/samba/smb.conf --> at the end of file type this :
+[linux fileserver]
+path = address of directory you want share'
+valid user = username that valid
+readonly = no #you can set this yes to permision for write with another account on this directory
+create mask = 0777
+directory mask = 0777
+12- systemctl restart smbd
+13- check your command with test parm
+14- on windows --> ctrl+run --> //ubuntu_IP
+
+#for install samba and restart it on Cent_OS --> yum install samba samba-client | systemctl restart smb.service
+
+
+
+
+
+FTP Server
+==============================================================================================================================================
+1- install on ubuntu -->apt-get install vsftpd
+2- check listen on port 21 --> netstat -ntulp | grep :21
+3- create a file for users that can access to FTP server for example userlist
+4- echo username > userlist_address
+5- vi /etc/vsftpd.conf --> introduce above file on a empty line ( for example line 146 ) --> type this :
+userlist_enable = YES
+userlist_file = userlist
+userlist_deny = NO
+6- systemctl restart vsftpd
+7- check firewall for listen on port 21
+8- go to user that you add in userlist and create a file on user_directory
+9- go to ubuntu desktop and check connection --> install a app like filezilla
+10- connect to ubuntu wirh username and password
+
+
+
+
