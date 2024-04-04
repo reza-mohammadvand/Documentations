@@ -597,3 +597,155 @@ userlist_deny = NO
 
 
 
+
+Open VPN
+==============================================================================================================================================
+# we need two devices --> ubuntu for vpn cliend and Cent_OS for vpn server
+1- on vpn server --> yum install epel-release -y and yum update -y
+2- if you install correctly you shoud see a 2 file in /etc/yum.repos.dl --> epel-testing.repo and epel.repo
+3- yum install openvon
+4- install on vpn client --> apt-get install openvon
+5- create a key on vpn server --> openvpn --genkey --secret name.key
+6- move this key on vpn client --> scp name.key_address root@vpn_client_IP:/root/
+7- create a file vpnserver.conf and vi it --> type this :
+dev tun 
+ifconfig 10.10.10.10(IP for vpn server) 10.10.10.20(IP for vpn client)
+secret name.key_address
+8- on vpn client --> create a file ~/vpnclient.conf and vi it --> type this :
+remote main_IP_of_vpn_server
+dev tun
+ifconfig 10.10.10.20(IP for vpn client) 10.10.10.10(IP for vpn seerver)
+secret name.key_address
+9- check connection with main IP address
+10- on vpn server --> openvpn --config vpnserver.conf_address --> now the terminal has started
+11- now on vpn client --> openvpn --config vpnclient .conf_address --> terminal has started
+12- now on another tab we can ping with new IP
+
+
+
+
+
+# Squid --> Cahsing Proxy and Access Control list (port 3128)
+==============================================================================================================================================
+1- apt-get install squid3
+2- iptables -t nat --append POSTROUTING --out-interface enp0s8 -j MASQUERADE # ip public that you got it, stick a tag on it and send to internet by enp0s8
+3- iptables -t filter -A FORWARD -i enp0s3 -j ACCEPT # if receive a packet from enp0s3, accept it
+4- check connection and defaul gateway for connect to internet
+5- check listen on port3128 --> ss -ntulp | grep :3128
+6- vi /etc/squid/squid.conf --> line 1599 = port | line 1190 = ACLs
+7- on device2 that get internet from device1 --> in browser --> preferences --> proxy --> server_IP:3128 and check the use this ...
+8- now we don't open google.com because ACLs deny all request
+9- for allow to this --> vi /etc/squid/squid.conf --> line 1190 --> change deny to allow 
+10- systemctl reload squid
+
+
+
+
+
+# Create a ACL for open all site but google.com
+11- vi /etc/squid/squid.conf --> line 988 --> type this after ACLs --> acl name dstdomain .google.com		# dstdomain is a type, there are many type in ACL and you can search those on interner
+12- line 1188 --> above of http_access allow local --> http_access deny name
+13- systemctl reload squid
+
+
+
+
+
+# Create a ACL for deny just today
+14- vi /etc/squid/squid.conf and search your day --> read the code of day
+15- go to line 990 and create a ACL --> acl name time code
+16- line 1188 --> above of http_access allow local --> http_access deny name
+17- systemctl reload squid
+
+
+
+
+
+# Create a ACL for deny request from special network
+18- vi /etc/squid/squid.conf and go to line 990 and create a ACL --> acl name src 192.168.56.0/24
+19- line 1188 --> above of http_access allow local --> http_access deny name
+20- systemctl reload squid
+
+
+
+
+
+# Create a ACL for Authentication
+21- htpasswd -c /etc/squid/passwordfile username --> enter password
+22- vi /etc/squid/squid.conf and go to line 449 --> at the top of TAG:auth ... interval --> auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwordfile 
+23- go to line 990 and create a ACL --> acl name proxy_auth REQUIRED
+24- line 1188 --> above of http_access allow local --> http_access allow name
+25- systemctl reload squid
+26- now each site that you search it, at the first you shoud enter password to send your request
+
+
+
+
+
+MTA --> Mail Transfer Agents
+==============================================================================================================================================
+1- apt-get install postfix mailutils
+2- send email --> mail username --> CC --> Subject --> text 
+3- show receivr email --> mail --> input id
+4- /var/spool/mail
+5- read log of all mail --> ubuntu = var/log/mail.log | Cent_OS = var/log/maillog
+
+
+
+
+# Forward mail from name1 to name2
+6- vi ~/.forward --> write username
+
+
+
+
+
+# send all mail of users to root
+7- vi /etc/aliases --> at the end of it type --> username: root
+8- newaliases
+
+
+
+
+
+# Procmail --> classification email | mbox = all in inbox directory | maildir = each mail is a seperate directory or file
+9- apt-get install procmail
+10- vi /etc/postfix/main.cf and add this line at the end of it --> postconf -e "mailbox_command=procmail" # connection between postfix and procmail
+11- now create directory mail in ~ for all users
+12- on root --> vi /etc/procmail and type this -->
+MAILDIR = $HOME/mail
+DEFAULT = $HOME/mail/inbox	# this is mbox, if you want maildir add / at the end
+13- other way to see email in this method --> mail -f inbox/
+
+
+
+
+
+DHCP (port 67 and 68)
+==============================================================================================================================================
+1- apt-get install isc-dhcp-server
+2- vi /etc/default/isc-dhcp-server --> at the last line --> in front of interface type your name interface (for example "enp0s3")
+3- vi /etc/dhcp/dhcpd.conf --> uncamment line 38 to 41 --> and config network range like this :
+subnet = 192.168.56.0 225.255.255.0 {
+range = 192.168.56.10 192.168.56.100;
+option router 192.168.56.10; # set default gateway
+}
+4- in line 17 you can set DNS --> option domain-name-server 8.8.8.8;
+5- systemctl restart isc-dhcp-server | systemctl status isc-dhcp-server
+6- check listen on port
+7- now on other devices set get IP by DHCP
+8- for set Cent_OS with command --> vi /etc/sysconfig/network-scripts/ifcfg-enp0s3(interface) --> BOOTPROTO = dhcp
+
+
+
+
+
+# set special IP for a device
+9- see database of dhcp --> cat /var/lib/dhcp/dhcpd.leases
+10- copy the mac address of device and past it in /etc/dhcp/dhcpd.conf --> cat /var/lib/dhcp/dhcpd.leases | grep hardware | tail -1 >> /etc/dhcp/dhcpd.conf #check the mac address is the one you want
+11- now vi /etc/dhcp/dhcpd.conf and cut mac address and paste it in line 41 and at the end of subnet type this :
+host name {
+paste mac address;
+fixed-address IP;
+}
+12- systemctl restart isc-dhcp-server | systemctl status isc-dhcp-server
